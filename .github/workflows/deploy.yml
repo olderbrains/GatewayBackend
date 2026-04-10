@@ -1,0 +1,76 @@
+name: Full CI/CD - Node + Docker + EKS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      # 1. Checkout code
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      # 2. Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3. Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # 4. Run Tests
+      - name: Run Tests
+        run: npm test
+
+      # 5. Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-south-1
+
+      # 6. Login to Amazon ECR
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ap-south-1 \
+          | docker login --username AWS --password-stdin <ECR_URL>
+
+      # 7. Build Docker image
+      - name: Build Docker Image
+        run: docker build -t node-app .
+
+      # 8. Tag Docker image
+      - name: Tag Docker Image
+        run: |
+          docker tag node-app:latest <ECR_URL>:latest
+
+      # 9. Push Docker image to ECR
+      - name: Push Docker Image
+        run: |
+          docker push <ECR_URL>:latest
+
+      # 10. Update kubeconfig for EKS
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig --name <EKS_CLUSTER_NAME>
+
+      # 11. Deploy to Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+
+      # 12. Verify deployment
+      - name: Check Pods
+        run: kubectl get pods
+
+      - name: Check Services
+        run: kubectl get svc
