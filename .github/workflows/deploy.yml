@@ -41,7 +41,7 @@ jobs:
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ap-south-1 \
-          | docker login --username AWS --password-stdin <ECR_URL>
+          | docker login --username AWS --password-stdin 841162681882.dkr.ecr.ap-south-1.amazonaws.com/olderbrains
 
       # 7. Build Docker image
       - name: Build Docker Image
@@ -50,17 +50,17 @@ jobs:
       # 8. Tag Docker image
       - name: Tag Docker Image
         run: |
-          docker tag node-app:latest <ECR_URL>:latest
+          docker tag node-app:latest 841162681882.dkr.ecr.ap-south-1.amazonaws.com/olderbrains:latest
 
       # 9. Push Docker image to ECR
       - name: Push Docker Image
         run: |
-          docker push <ECR_URL>:latest
+          docker push 841162681882.dkr.ecr.ap-south-1.amazonaws.com/olderbrains:latest
 
       # 10. Update kubeconfig for EKS
       - name: Configure kubectl for EKS
         run: |
-          aws eks update-kubeconfig --name <EKS_CLUSTER_NAME>
+          aws eks update-kubeconfig --name hilarious-pop-seal
 
       # 11. Deploy to Kubernetes
       - name: Deploy to Kubernetes
