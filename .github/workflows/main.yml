@@ -1,0 +1,9 @@
+name: Hello World Workflow
+on: [push] # Triggers the workflow on every push to the repository
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest # The type of virtual machine to use
+    steps:
+      - name: Run a one-line script
+        run: echo "Hello World!" # The command to execute
